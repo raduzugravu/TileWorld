@@ -20,7 +20,7 @@
     <script>
         var tileWorldEvents = new grails.Events("http://localhost:8080/");
         tileWorldEvents.on('drawTileWorld', function(data) {
-            console.log("Received test message: " + data);
+            console.log("Received test message: " + JSON.stringify(data, null, 2));
         });
     </script>
 
