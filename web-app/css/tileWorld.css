@@ -1,0 +1,36 @@
+/* TileWorld CSS properties*/
+#content {
+    padding: 10px;
+}
+#menu {
+    float: right;
+}
+.row {
+    overflow: hidden;
+    width: 100%;
+    clear: both;
+}
+.box {
+    display: block;
+    float: left;
+    margin: 0px;
+    padding: 0px;
+    border: 1px solid #000;
+    background-color: #ccc;
+    text-align: center;
+}
+.obstacle {
+    background-color: #444;
+}
+.agent {
+
+}
+.hole {
+    border-radius: 50%;
+    color: #FFF;
+}
+.tile {
+    display: block;
+    float: left;
+    border-radius: 50%;
+}

@@ -111,16 +111,9 @@ class TileWorldService {
 
     }
 
-    def updateTileWorld() {
-
-        def data = ['message': 'Hello from server!'];
-
-        def jsonData = data as JSON
-        System.out.println(jsonData);
-
-        event(key: "drawTileWorld", for: 'browser', data: data);
-        //event(topic: "drawTileWorld");
-
+    // send event to update tile world environment
+    def updateTileWorld(def environment) {
+        event(key: "drawTileWorld", for: 'browser', data: environment);
     }
 
 }

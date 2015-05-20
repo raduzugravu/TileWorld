@@ -1,7 +1,7 @@
 package com.tileworld
 
 import com.tileworld.exceptions.ConfigurationException
-import grails.web.JSONBuilder
+import grails.converters.JSON
 
 class HomeController {
 
@@ -27,16 +27,13 @@ class HomeController {
             // Initialise TileWorld game based on loaded configuration file
             String configuration = configFile?.inputStream?.text;
 
-            environment = tileWorldService.initialise(configuration);
-
-            flash.message = "TileWorld configuration file uploaded successfully. Your game will start soon. Please wait.."
+            String environmentJSON = tileWorldService.initialise(configuration) as JSON;
+            return [environment: environmentJSON];
 
         } catch (ConfigurationException e) {
             flash.message = "Error initialising TileWorld. Please make sure your configuration file is correct.";
-            redirect([action: "index"]);
         }
 
-        [environment: environment];
-
+        redirect([action: "index"]);
     }
 }

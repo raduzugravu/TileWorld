@@ -5,7 +5,6 @@
   Time: 00:47
 --%>
 
-<%@ page contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
 
@@ -16,17 +15,17 @@
     <script src="<g:resource plugin="events-push" dir="js/atmosphere" file="jquery.atmosphere.js"/>"></script>
     <script src="<g:resource plugin="events-push" dir="js/grails" file="grailsEvents.js"/>"></script>
 
-    %{--<r:require module="grailsEvents"/>--}%
     <script>
-        var tileWorldEvents = new grails.Events("http://localhost:8080/");
-        tileWorldEvents.on('drawTileWorld', function(data) {
-            console.log("Received test message: " + JSON.stringify(data, null, 2));
-        });
+        drawTileWorld(${raw(environment)});
+        //var tileWorldEvents = new grails.Events("http://localhost:8080/");
+        //tileWorldEvents.on('drawTileWorld', drawTileWorld(data));
     </script>
 
 </head>
 
 <body>
+
+<div id="tileWorld"></div>
 
 </body>
 
