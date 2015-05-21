@@ -1,6 +1,6 @@
 package com.tileworld
 
-import com.tileworld.TileWorldService
+import com.tileworld.representation.Environment
 import grails.test.mixin.TestFor
 import spock.lang.Specification
 
@@ -28,7 +28,7 @@ HOLES 2 green 0 0 2 blue 1 2
             """;
 
         when:
-        Environment environment = service.initialise(configuration);
+        Environment environment = service.getConfiguration(configuration);
 
         then:
 

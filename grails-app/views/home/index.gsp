@@ -19,6 +19,7 @@
 </g:if>
 
 <g:uploadForm action="start" name="tileWorldConfiguration">
+    <g:textArea name="tileWorldConfigInput" placeholder="Paste your configuration input here.."/> OR
     <input type="file" name="tileWorldConfigFile" />
     <g:submitButton name="submit" value="Start your World"/>
 </g:uploadForm>

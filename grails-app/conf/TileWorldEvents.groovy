@@ -7,6 +7,7 @@ doWithReactor = {
 
         ext 'browser', [
                 R('drawTileWorld'),
+                R('updateConsole'),
                 'system',
                 'client'
         ]

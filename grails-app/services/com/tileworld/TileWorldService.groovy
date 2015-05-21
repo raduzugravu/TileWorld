@@ -1,13 +1,24 @@
 package com.tileworld
 
 import com.tileworld.exceptions.ConfigurationException
-import grails.converters.JSON
+import com.tileworld.representation.Agent
+import com.tileworld.representation.Environment
+import com.tileworld.representation.Generator
+import com.tileworld.representation.Hole
+import com.tileworld.representation.Obstacle
+import com.tileworld.representation.Tile
+import com.tileworld.thread.EnvironmentThread
 import grails.transaction.Transactional
 
 @Transactional
 class TileWorldService {
 
-    Environment initialise(String configuration) throws ConfigurationException {
+    /**
+     * Transform user configuration input into internal configuration.
+     * @param configuration - user configuration input
+     * @return environment - internal environment configuration
+     */
+    Environment getConfiguration(String configuration) throws ConfigurationException {
 
         try {
 
@@ -30,7 +41,7 @@ class TileWorldService {
 
             // agents color
             for(int i = 0; i < environment.numberOfAgents; i++) {
-                Agent agent = new Agent(color: configurationVariables[k]);
+                Agent agent = new Agent(color: configurationVariables[k], name: "agent${i}");
                 environment.agents.add(agent);
                 k++;
             }
@@ -105,15 +116,32 @@ class TileWorldService {
             return environment;
 
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
             throw new ConfigurationException(e.getMessage());
         }
 
     }
 
+    /**
+     * Start agent threads and environment thread.
+     * @param environment
+     */
+    def initialise(Environment environment) {
+        Thread.sleep(1000);
+        new EnvironmentThread(environment, this);
+        updateTileWorld(environment);
+        updateConsole("TileWorld game started.");
+    }
+
     // send event to update tile world environment
     def updateTileWorld(def environment) {
         event(key: "drawTileWorld", for: 'browser', data: environment);
+    }
+
+    def updateConsole(String message) {
+        System.out.println(message);
+        def data = [message: message]
+        event(key: "updateConsole", for: 'browser', data: data)
     }
 
 }

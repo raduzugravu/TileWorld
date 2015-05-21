@@ -1,6 +1,7 @@
 package com.tileworld
 
 import com.tileworld.exceptions.ConfigurationException
+import com.tileworld.representation.Environment
 import grails.converters.JSON
 
 class HomeController {
@@ -13,21 +14,32 @@ class HomeController {
 
     def start() {
 
-        Environment environment;
-
         try {
 
-            // upload configuration file
+            System.out.println("PARAMS: " + params);
+
+            // read uploaded configuration
             def configFile = request.getFile("tileWorldConfigFile");
-            if(!configFile) {
-                flash.message = "Before starting TileWorld you have to upload world configuration file"
-                redirect([action: "index"]);
+            String configuration = configFile?.inputStream?.text;
+            if(!configuration) {
+                if (!params.tileWorldConfigInput) {
+                    flash.message = "Before starting TileWorld you have to upload world configuration file"
+                    redirect([action: "index"]);
+                } else {
+                    configuration = params.tileWorldConfigInput;
+                }
             }
 
-            // Initialise TileWorld game based on loaded configuration file
-            String configuration = configFile?.inputStream?.text;
+            System.out.println("CONFIGURATION: " + configuration);
 
-            String environmentJSON = tileWorldService.initialise(configuration) as JSON;
+            // get internal representation of TileWorld game configuration based on user configuration input and initialise environment
+            Environment environment = tileWorldService.getConfiguration(configuration);
+            runAsync {
+                tileWorldService.initialise(environment)
+            }
+
+            flash.message = "Please wait. We are initialising your TileWorld environment..";
+            String environmentJSON = environment as JSON;
             return [environment: environmentJSON];
 
         } catch (ConfigurationException e) {

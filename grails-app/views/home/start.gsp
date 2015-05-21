@@ -17,15 +17,28 @@
 
     <script>
         drawTileWorld(${raw(environment)});
-        //var tileWorldEvents = new grails.Events("http://localhost:8080/");
-        //tileWorldEvents.on('drawTileWorld', drawTileWorld(data));
+        var tileWorldEvents = new grails.Events("http://localhost:8080/");
+        tileWorldEvents.on('drawTileWorld', function(data) {
+            drawTileWorld(data);
+        });
+        tileWorldEvents.on('updateConsole', function(data) {
+            updateConsole(data);
+        });
     </script>
 
 </head>
 
 <body>
 
-<div id="tileWorld"></div>
+<div id="tileWorld">
+    <g:if test="${flash.message}">
+        <p class="message error">${flash.message}</p>
+    </g:if>
+</div>
+
+<hr/>
+
+<div id="console"></div>
 
 </body>
 

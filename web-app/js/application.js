@@ -77,3 +77,16 @@ function drawTileWorld(data) {
         })(jQuery);
     }
 }
+
+function updateConsole(data) {
+    if (typeof jQuery !== 'undefined') {
+        (function($) {
+
+            $(document).ready(function() {
+                var console = $("#console");
+                console.html(console.html() + data.message + "<br/>");
+            });
+
+        })(jQuery);
+    }
+}

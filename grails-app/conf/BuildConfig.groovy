@@ -69,6 +69,7 @@ grails.project.dependency.resolution = {
         compile ":scaffolding:2.0.3"
         compile ':cache:1.1.7'
 
+        compile ':executor:0.3'
         compile ':quartz:1.0.2'
         compile ':quartz-monitor:1.0'
 
