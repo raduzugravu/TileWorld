@@ -7,7 +7,11 @@ import com.tileworld.representation.Generator
 import com.tileworld.representation.Hole
 import com.tileworld.representation.Obstacle
 import com.tileworld.representation.Tile
+import com.tileworld.thread.AgentThread
+
 import com.tileworld.thread.EnvironmentThread
+
+import com.tileworld.thread.Ticker
 import grails.transaction.Transactional
 
 @Transactional
@@ -127,10 +131,27 @@ class TileWorldService {
      * @param environment
      */
     def initialise(Environment environment) {
+
         Thread.sleep(1000);
-        new EnvironmentThread(environment, this);
+
+        Ticker ticker = new Ticker(environment, this);
+
+        // create agents and start them
+        List<AgentThread> agentThreads = new ArrayList<AgentThread>();
+        for(int i = 0; i < environment.agents.size(); i++) {
+            AgentThread agent = new AgentThread(environment, ticker, this, environment.agents.get(i).name);
+            agentThreads.add(agent);
+            agent.start();
+        }
+
+        Thread.sleep(5000);
+
+        EnvironmentThread environmentThread = new EnvironmentThread(environment, ticker, this);
+        environmentThread.start()
+
         updateTileWorld(environment);
         updateConsole("TileWorld game started.");
+
     }
 
     // send event to update tile world environment
@@ -139,7 +160,7 @@ class TileWorldService {
     }
 
     def updateConsole(String message) {
-        System.out.println(message);
+        System.out.println(System.currentTimeMillis() + " -> " + message);
         def data = [message: message]
         event(key: "updateConsole", for: 'browser', data: data)
     }

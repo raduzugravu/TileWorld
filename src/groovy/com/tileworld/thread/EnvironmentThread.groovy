@@ -6,27 +6,34 @@ import com.tileworld.representation.Environment
 /**
  * Created by radu on 21/05/15.
  */
-class EnvironmentThread implements Runnable{
+class EnvironmentThread extends Thread {
 
     Environment environment;
+    Ticker ticker;
     TileWorldService tileWorldService;
 
-    public EnvironmentThread(Environment environment, TileWorldService tileWorldService) {
+    public EnvironmentThread(Environment environment, Ticker ticker, TileWorldService tileWorldService) {
+        this.name = "environment";
         this.environment = environment;
+        this.ticker = ticker;
         this.tileWorldService = tileWorldService;
-        new Thread(this, "environment").start();
         tileWorldService.updateConsole("environment: started.")
     }
 
     @Override
     void run() {
 
-        // create agents and start them
-        List<AgentThread> agents = new ArrayList<AgentThread>();
-        for(int i = 0; i < this.environment.agents.size(); i++) {
-            AgentThread agent = new AgentThread(this.environment, this.tileWorldService, this.environment.agents.get(i).name);
-            agents.add(agent);
+        while(environment.totalTime > 0) {
+
+            long startTime = System.currentTimeMillis() % 1000;
+            ticker.tick(this.name);
+            long endTime = System.currentTimeMillis() % 1000 - startTime;
+
+            Thread.sleep(environment.tickTime - endTime);
+            environment.totalTime -= environment.tickTime
         }
 
+        tileWorldService.updateConsole(this.name + ": ended.")
+        ticker.end();
     }
 }
