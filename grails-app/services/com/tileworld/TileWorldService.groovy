@@ -141,11 +141,11 @@ class TileWorldService {
      */
     private def initialiseMap(Environment environment) {
 
-        def map = [[]];
+        def map = [];
 
-        for(int i = 0; i < environment.gridWidth; i++) {
+        for(int i = 0; i < environment.gridHeight; i++) {
             def row = [];
-            for(int j = 0; j < environment.gridHeight; j++) {
+            for(int j = 0; j < environment.gridWidth; j++) {
                 row.add("E");
             }
             map.add(row);

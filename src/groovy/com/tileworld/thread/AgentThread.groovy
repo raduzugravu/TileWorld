@@ -47,26 +47,28 @@ class AgentThread extends Thread {
 
     private void makeRandomMove() {
 
+        System.out.println("makeRandomMove(): ${this.name}.")
+
         def position = getPosition();
 
         // check left
-        if(environment.isEmpty([x: position.x-1, y: position.y])) {
-            move([x: position.x-1, y: position.y]);
+        if(environment.isEmpty([x: position.x, y: position.y-1])) {
+            move([x: position.x, y: position.y-1]);
         }
 
         // check right
-        if(environment.isEmpty([x: position.x+1, y: position.y])) {
-            move([x: position.x+1, y: position.y]);
-        }
-
-        // check up
         if(environment.isEmpty([x: position.x, y: position.y+1])) {
             move([x: position.x, y: position.y+1]);
         }
 
+        // check up
+        if(environment.isEmpty([x: position.x-1, y: position.y])) {
+            move([x: position.x-1, y: position.y]);
+        }
+
         // check down
-        if(environment.isEmpty([x: position.x, y: position.y-1])) {
-            move([x: position.x, y: position.y-1]);
+        if(environment.isEmpty([x: position.x+1, y: position.y])) {
+            move([x: position.x+1, y: position.y]);
         }
     }
 

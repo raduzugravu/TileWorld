@@ -90,12 +90,15 @@ public class Environment {
 
             if(author.equalsIgnoreCase(agents.get(i).name)) {
 
-                agents.get(i).xPosition = operation.position.x;
-                agents.get(i).yPosition = operation.position.y;
-
                 if(map[operation.position.x][operation.position.y] != 'E') return false;
 
+                // update map old position and new position
+                map[agents.get(i).xPosition][agents.get(i).yPosition] = 'E';
                 map[operation.position.x][operation.position.y] = 'A';
+
+                // update agent old position and new position
+                agents.get(i).xPosition = operation.position.x;
+                agents.get(i).yPosition = operation.position.y;
 
                 break;
             }
@@ -105,9 +108,18 @@ public class Environment {
     }
 
     public Boolean isEmpty(def position) {
-        if(map[position.x][position.y] == 'E' &&
-                position.x >= 0 && position.x < gridWidth &&
-                position.y >= 0 && position.y < gridHeight) {
+
+//        System.out.println("isEmpty(): position=${position}");
+//        for (int i = 0; i < map.size(); i++) {
+//            for (int j = 0; j < map.get(i).size(); j++) {
+//                System.out.print("${map[i][j]} ");
+//            }
+//            System.out.println("");
+//        }
+
+        if( position.x >= 0 && position.x < gridHeight &&
+            position.y >= 0 && position.y < gridWidth &&
+            map[position.x][position.y] == 'E') {
             return true;
         }
 

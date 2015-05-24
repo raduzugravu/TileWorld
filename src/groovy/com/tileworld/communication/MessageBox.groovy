@@ -15,6 +15,7 @@ class MessageBox {
 
     public synchronized void checkMessageList(numberOfMessages) {
         if(messageList.size() < numberOfMessages) {
+            System.out.println("Wait: messageList.size()=${messageList.size()}; numberOfMessages=${numberOfMessages}");
             wait();
         }
     }
@@ -24,6 +25,7 @@ class MessageBox {
     }
 
     public synchronized void addMessage(Message message) {
-        messageList.add(message)
+        messageList.add(message);
+        notifyAll();
     }
 }

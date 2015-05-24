@@ -79,5 +79,23 @@ HOLES 2 green 0 0 2 blue 1 2
         environment.holes.get(1).xPosition == 1;
         environment.holes.get(1).yPosition == 2;
 
+        // map
+        environment.map[0][0] == 'H';
+        environment.map[0][1] == 'E';
+        environment.map[0][2] == 'E';
+        environment.map[0][3] == 'A';
+        environment.map[1][0] == 'E';
+        environment.map[1][1] == 'O';
+        environment.map[1][2] == 'H';
+        environment.map[1][3] == 'T';
+        environment.map[2][0] == 'T';
+        environment.map[2][1] == 'O';
+        environment.map[2][2] == 'O';
+        environment.map[2][3] == 'T';
+        environment.map[3][0] == 'A';
+        environment.map[3][1] == 'E';
+        environment.map[3][2] == 'E';
+        environment.map[3][3] == 'E';
+
     }
 }
