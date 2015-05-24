@@ -20,6 +20,11 @@ class EnvironmentThread extends Thread {
         tileWorldService.updateConsole("environment: started.")
     }
 
+    /**
+     * EnvironmentThread announces all agents when they should do their move through a tick event.
+     * After the tick event is issued EnvironmentThread waits for all Agents to send him a message with their move.
+     * The tick event is repeated until total time ends.
+     */
     @Override
     void run() {
 
@@ -27,8 +32,12 @@ class EnvironmentThread extends Thread {
 
             long startTime = System.currentTimeMillis() % 1000;
             ticker.tick(this.name);
+            environment.messageBox.checkMessageList(environment.numberOfAgents);
+            environment.processMessageList();
+            tileWorldService.updateTileWorld(environment);
             long endTime = System.currentTimeMillis() % 1000 - startTime;
 
+            // if everything ended faster, wait until next tick time
             Thread.sleep(environment.tickTime - endTime);
             environment.totalTime -= environment.tickTime
         }

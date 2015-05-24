@@ -1,5 +1,6 @@
 package com.tileworld
 
+import com.tileworld.communication.MessageBox
 import com.tileworld.exceptions.ConfigurationException
 import com.tileworld.representation.Agent
 import com.tileworld.representation.Environment
@@ -45,7 +46,8 @@ class TileWorldService {
 
             // agents color
             for(int i = 0; i < environment.numberOfAgents; i++) {
-                Agent agent = new Agent(color: configurationVariables[k], name: "agent${i}");
+                MessageBox messageBox = new MessageBox();
+                Agent agent = new Agent(color: configurationVariables[k], name: "agent${i}", messageBox: messageBox);
                 environment.agents.add(agent);
                 k++;
             }
@@ -117,6 +119,11 @@ class TileWorldService {
                 }
             }
 
+            environment.map = initialiseMap(environment);
+
+            // messageBox used to communicate between agents and environment
+            environment.messageBox = new MessageBox();
+
             return environment;
 
         } catch (Exception e) {
@@ -124,6 +131,47 @@ class TileWorldService {
             throw new ConfigurationException(e.getMessage());
         }
 
+    }
+
+    /**
+     * Mark each cell with a character corresponding to the entity currently in that cell (agents, tiles, holes, obstacles).
+     * This will ease the process of finding out if an adjacent cell is free or not.
+     * @param environment
+     * @return map - a matrix marking all cells that are not empty in this tile world game.
+     */
+    private def initialiseMap(Environment environment) {
+
+        def map = [[]];
+
+        for(int i = 0; i < environment.gridWidth; i++) {
+            def row = [];
+            for(int j = 0; j < environment.gridHeight; j++) {
+                row.add("E");
+            }
+            map.add(row);
+        }
+
+        // mark agents
+        for(int i = 0; i < environment.agents.size(); i++) {
+            map[environment.agents.get(i).xPosition][environment.agents.get(i).yPosition] = "A";
+        }
+
+        // mark tiles
+        for(int i = 0; i < environment.tiles.size(); i++) {
+            map[environment.tiles.get(i).xPosition][environment.tiles.get(i).yPosition] = "T";
+        }
+
+        // mark holes
+        for(int i = 0; i < environment.holes.size(); i++) {
+            map[environment.holes.get(i).xPosition][environment.holes.get(i).yPosition] = "H";
+        }
+
+        // mark obstacles
+        for(int i = 0; i < environment.obstacles.size(); i++) {
+            map[environment.obstacles.get(i).xPosition][environment.obstacles.get(i).yPosition] = "O";
+        }
+
+        return map;
     }
 
     /**

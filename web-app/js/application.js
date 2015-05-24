@@ -67,9 +67,8 @@ function drawTileWorld(data) {
                 // mark agents
                 for(var i=0; i < data.agents.length; i++) {
                     var boxId = "#"+data.agents[i].xPosition+data.agents[i].yPosition;
-                    $(""+boxId).addClass("agent");
-                    $(""+boxId).html("A");
-                    $(""+boxId).css("color", data.agents[i].color);
+                    $(""+boxId).html('<div class="agent" style="width:'+boxSize+'px; height:'+boxSize+'px;"></div>');
+                    $(""+boxId+" > .agent").css("background-color", data.agents[i].color);
                 }
                 $(".agent").css("font-size", fontSize);
             });

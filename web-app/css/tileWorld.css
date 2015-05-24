@@ -27,7 +27,9 @@
     background-color: #444;
 }
 .agent {
-
+    border-radius: 50%;
+    background-image: url("/images/agentSmile.png");
+    background-size: cover;
 }
 .hole {
     border-radius: 50%;
