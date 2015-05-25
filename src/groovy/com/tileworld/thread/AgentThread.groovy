@@ -30,11 +30,11 @@ class AgentThread extends Thread {
 
             // got action tick - make your move
             makeRandomMove();
-            waitForAnswer();
+            environment.messageBox.isMessageListProcessed();
             processMessageList();
         }
 
-        tileWorldService.updateConsole(this.name + ": ended.")
+        System.out.println(this.name + ": ended.")
     }
 
     private def getPosition() {
@@ -47,28 +47,30 @@ class AgentThread extends Thread {
 
     private void makeRandomMove() {
 
-        System.out.println("makeRandomMove(): ${this.name}.")
-
         def position = getPosition();
 
         // check left
         if(environment.isEmpty([x: position.x, y: position.y-1])) {
             move([x: position.x, y: position.y-1]);
+            return;
         }
 
         // check right
         if(environment.isEmpty([x: position.x, y: position.y+1])) {
             move([x: position.x, y: position.y+1]);
+            return;
         }
 
         // check up
         if(environment.isEmpty([x: position.x-1, y: position.y])) {
             move([x: position.x-1, y: position.y]);
+            return;
         }
 
         // check down
         if(environment.isEmpty([x: position.x+1, y: position.y])) {
             move([x: position.x+1, y: position.y]);
+            return;
         }
     }
 
@@ -86,8 +88,8 @@ class AgentThread extends Thread {
     private void processMessageList() {
         for(int i = 0; i < environment.numberOfAgents; i++) {
             if (this.name.equalsIgnoreCase(environment.agents.get(i).name)) {
-                environment.agents.get(i).messageBox.messageList.get(0).each {
-                    tileWorldService.updateConsole(it.toString());
+                environment.agents.get(i).messageBox.messageList.each {
+                    tileWorldService.updateConsole("${this.name}: ${it.toString()}");
                 }
                 environment.agents.get(i).messageBox.messageList.clear();
                 break;
@@ -95,16 +97,69 @@ class AgentThread extends Thread {
         }
     }
 
+    /* --- OPERATIONS --- */
+
     /**
      * Notify environment thread that your intention is to move to another adjacent cell
      * @param newPosition - position the agent wants to get to
      */
     private void move(def newPosition) {
-        System.out.println("${this.name}: move=${newPosition}.")
+        System.out.println("move(): ${this.name}: position=${newPosition}.")
         Message message = new Message(sender: this.name, replayWith: "OPERATION_SUCCESS_CODE");
         Operation operation = new Operation(code: "MOVE", position: newPosition);
         message.operation = operation;
         environment.messageBox.addMessage(message);
     }
+
+    /**
+     * Notify environment thread that your intention is to pick the tile in the current cell.
+     * @param newPosition - position the agent wants to get to
+     */
+    private void pickTile(def position) {
+        System.out.println("pickTile(): ${this.name}: position=${position}.")
+        Message message = new Message(sender: this.name, replayWith: "OPERATION_SUCCESS_CODE");
+        Operation operation = new Operation(code: "PICK", position: position);
+        message.operation = operation;
+        environment.messageBox.addMessage(message);
+    }
+
+    /**
+     * Notify environment thread that your intention is to drop the tile in the current cell.
+     * @param newPosition - position the agent wants to get to
+     */
+    private void dropTile(def position) {
+        System.out.println("dropTile(): ${this.name}: position=${position}.");
+        Message message = new Message(sender: this.name, replayWith: "OPERATION_SUCCESS_CODE");
+        Operation operation = new Operation(code: "DROP", position: position);
+        message.operation = operation;
+        environment.messageBox.addMessage(message);
+    }
+
+    /**
+     * Notify environment thread that your intention is to use the tile to cover an adjacent hole.
+     * @param direction - LEFT, RIGHT, UP, DOWN
+     */
+    private void useTile(String direction) {
+        System.out.println("useTile(): ${this.name}: direction=${direction}.");
+        Message message = new Message(sender: this.name, replayWith: "OPERATION_SUCCESS_CODE");
+        Operation operation = new Operation(code: "USE", direction: direction);
+        message.operation = operation;
+        environment.messageBox.addMessage(message);
+    }
+
+    /**
+     * Notify environment thread that your intention is to transfer points to another thread
+     * @param toAgent - agent you are transferring points to.
+     * @param transferPoints - number of points to transfer
+     */
+    private void transferPoints(String toAgent, Integer transferPoints) {
+        System.out.println("transferPoints(): ${this.name}: toAgent=${toAgent}; transferPoints=${transferPoints}.")
+        Message message = new Message(sender: this.name, replayWith: "OPERATION_SUCCESS_CODE");
+        Operation operation = new Operation(code: "TRANSFER", toAgent: toAgent, transferPoints: transferPoints);
+        message.operation = operation;
+        environment.messageBox.addMessage(message);
+    }
+
+    /* --- END OPERATIONS --- */
 
 }

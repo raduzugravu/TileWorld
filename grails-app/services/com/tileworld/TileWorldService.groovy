@@ -47,7 +47,7 @@ class TileWorldService {
             // agents color
             for(int i = 0; i < environment.numberOfAgents; i++) {
                 MessageBox messageBox = new MessageBox();
-                Agent agent = new Agent(color: configurationVariables[k], name: "agent${i}", messageBox: messageBox);
+                Agent agent = new Agent(color: configurationVariables[k], name: configurationVariables[k], messageBox: messageBox);
                 environment.agents.add(agent);
                 k++;
             }
@@ -180,7 +180,7 @@ class TileWorldService {
      */
     def initialise(Environment environment) {
 
-        Thread.sleep(1000);
+        Thread.sleep(5000);
 
         Ticker ticker = new Ticker(environment, this);
 
@@ -191,8 +191,6 @@ class TileWorldService {
             agentThreads.add(agent);
             agent.start();
         }
-
-        Thread.sleep(5000);
 
         EnvironmentThread environmentThread = new EnvironmentThread(environment, ticker, this);
         environmentThread.start()

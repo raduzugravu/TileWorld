@@ -1,5 +1,6 @@
 package com.tileworld.representation
 
+import com.tileworld.TileWorldService
 import com.tileworld.communication.Message
 import com.tileworld.communication.MessageBox
 import com.tileworld.communication.Operation
@@ -27,10 +28,10 @@ public class Environment {
 
     MessageBox messageBox;
 
-    public processMessageList() {
-        System.out.println ("environment: processMessageList: size=${this.messageBox.messageList.size()}.");
-        for(int i = 0; i < messageBox.messageList.size(); i++) {
-            processMessage(messageBox.messageList.get(i));
+    public processMessageList(TileWorldService tileWorldService) {
+        messageBox.messageList.each { Message message ->
+            tileWorldService.updateConsole("environment: ${message.toString()}");
+            processMessage(message);
         }
 
         messageBox.emptyMessageList();

@@ -34,12 +34,13 @@ class Ticker {
         agentsCounter = 0;
         notifyAll();
 
-        tileWorldService.updateConsole(threadName + ": Tick.")
+        System.out.println(threadName + ": Tick.")
     }
 
     public synchronized action(String threadName) {
 
         if(!ticked || (agentsCounter < environment.agents.size())) {
+            System.out.println("${threadName}: Wait for tick.");
             wait()
         }
 
@@ -48,7 +49,7 @@ class Ticker {
             ticked = false;
         }
 
-        tileWorldService.updateConsole(threadName + ": Action.");
+        System.out.println(threadName + ": Action.");
     }
 
 }

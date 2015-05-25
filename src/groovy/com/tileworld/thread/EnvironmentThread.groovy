@@ -33,16 +33,18 @@ class EnvironmentThread extends Thread {
             long startTime = System.currentTimeMillis() % 1000;
             ticker.tick(this.name);
             environment.messageBox.checkMessageList(environment.numberOfAgents);
-            environment.processMessageList();
+            environment.processMessageList(tileWorldService);
             tileWorldService.updateTileWorld(environment);
             long endTime = System.currentTimeMillis() % 1000 - startTime;
 
             // if everything ended faster, wait until next tick time
             Thread.sleep(environment.tickTime - endTime);
             environment.totalTime -= environment.tickTime
+
+            System.out.println("EnvironmentThread.run(): Time to end: ${environment.totalTime}");
         }
 
-        tileWorldService.updateConsole(this.name + ": ended.")
+        System.out.println(this.name + ": ended.")
         ticker.end();
     }
 }
