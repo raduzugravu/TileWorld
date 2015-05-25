@@ -36,9 +36,9 @@
     </g:if>
 </div>
 
-<hr/>
-
-<div id="console"></div>
+<div id="console">
+    <ul></ul>
+</div>
 
 </body>
 

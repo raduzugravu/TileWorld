@@ -1,6 +1,11 @@
 /* TileWorld CSS properties*/
 #content {
+    display: block;
+    overflow: hidden;
     padding: 10px;
+}
+#tileWorld {
+    float:left;
 }
 #menu {
     float: right;
@@ -45,9 +50,24 @@
     margin: 10px 0;
 }
 #console {
+    float: left;
     border: 1px solid #000;
     padding: 5px;
-    max-height: 100px;
+    margin: 0 0 0 10px;
     resize: none;
+    overflow-x: scroll;
     overflow-y: scroll;
+}
+#console ul li {
+    padding: 5px 0;
+    border-bottom: 1px solid #ccc;
+}
+#console ul li:hover {
+    background-color: #ddd;
+}
+#console ul:last-child {
+    border-bottom: 0px;
+}
+.footer {
+    text-align: right;
 }

@@ -24,8 +24,12 @@ function drawTileWorld(data) {
                 var tileWorld = '';
 
                 // compute box width based on body's max width and font-size as percent of box width
-                var boxSize = (940-2*data.gridWidth)/data.gridWidth;
+                var maxSize = $(window).height() > $(window).width() ? $(window).width() : $(window).height();
+                maxSize -= 110;
+                var boxSize = (maxSize-2*data.gridWidth)/data.gridWidth;
                 var fontSize = (80*boxSize/100)+"px";
+
+                console.log("maxSize="+maxSize+"; boxSize="+boxSize+"; fontSize="+fontSize);
 
                 // draw grid
                 for(var i=0; i < data.gridHeight; i++) {
@@ -71,6 +75,10 @@ function drawTileWorld(data) {
                     $(""+boxId+" > .agent").css("background-color", data.agents[i].color);
                 }
                 $(".agent").css("font-size", fontSize);
+
+                $("#console").css("height", ($("#tileWorld").height()-13)+"px");
+                $("#console").css("width", ($(window).width() - $("#tileWorld").width() - 42)+"px");
+                $("#console").scrollTop($("#console > ul > li.last").scrollHeight);
             });
 
         })(jQuery);
@@ -82,8 +90,7 @@ function updateConsole(data) {
         (function($) {
 
             $(document).ready(function() {
-                var console = $("#console");
-                console.html(console.html() + data.message + "<br/>");
+                $("#console > ul").append('<li>'+data.message+'</li>')
             });
 
         })(jQuery);

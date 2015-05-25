@@ -22,11 +22,11 @@ class HomeController {
             def configFile = request.getFile("tileWorldConfigFile");
             String configuration = configFile?.inputStream?.text;
             if(!configuration) {
-                if (!params.tileWorldConfigInput) {
-                    flash.message = "Before starting TileWorld you have to upload world configuration file"
-                    redirect([action: "index"]);
-                } else {
+                if (params.tileWorldConfigInput) {
                     configuration = params.tileWorldConfigInput;
+                } else {
+                    configuration = new File('system.txt').text;
+
                 }
             }
 
@@ -44,6 +44,11 @@ class HomeController {
 
         } catch (ConfigurationException e) {
             flash.message = "Error initialising TileWorld. Please make sure your configuration file is correct.";
+        } catch (FileNotFoundException e) {
+            flash.message = "Your system.txt default configuration file was not found.";
+        } catch (Exception e) {
+            flash.message = e.getMessage();
+            e.printStackTrace();
         }
 
         redirect([action: "index"]);

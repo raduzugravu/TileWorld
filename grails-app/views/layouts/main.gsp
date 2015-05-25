@@ -36,10 +36,38 @@
             <g:layoutBody/>
         </div>
 
-        <div class="footer" role="contentinfo"></div>
+        <div class="footer" role="contentinfo">
+            <p>Copyright &copy; 2015 - <span></span></p>
+        </div>
         <div id="spinner" class="spinner" style="display:none;"><g:message code="spinner.alt" default="Loading&hellip;"/></div>
 
         <r:layoutResources />
 
-	</body>
+    <script type="text/javascript" language="javascript">
+        <!--
+        // Email obfuscator script 2.1 by Tim Williams, University of Arizona
+        // Random encryption key feature by Andrew Moulden, Site Engineering Ltd
+        // This code is freeware provided these four comment lines remain intact
+        // A wizard to generate this code is at http://www.jottings.com/obfuscator/
+        { coded = "0ZLqaqH0Zwqsd@HAZJC.4nA"
+            key = "9djqnhZTOvCE5HYc8rtFRKzsLkSM1fm7w2WXUi4e0puoIaVyDl6GgA3BQxbPJN"
+            shift=coded.length
+            link=""
+            for (i=0; i<coded.length; i++) {
+                if (key.indexOf(coded.charAt(i))==-1) {
+                    ltr = coded.charAt(i)
+                    link += (ltr)
+                }
+                else {
+                    ltr = (key.indexOf(coded.charAt(i))-shift+key.length) % key.length
+                    link += (key.charAt(ltr))
+                }
+            }
+            $(".footer > p > span").html("<a href='mailto:"+link+"'>Radu-Stefan Zugravu</a>")
+        }
+        //-->
+    </script><noscript>Sorry, you need Javascript on to email me.</noscript>
+
+
+    </body>
 </html>
