@@ -15,6 +15,4 @@ class Agent {
     Integer yPosition;
 
     Tile tile; // the tile this agent is carrying
-
-    MessageBox messageBox; // message box used to communicate messages to agents - from different agents and from environment
 }

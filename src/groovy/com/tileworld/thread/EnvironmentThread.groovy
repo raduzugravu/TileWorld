@@ -1,6 +1,8 @@
 package com.tileworld.thread
 
 import com.tileworld.TileWorldService
+import com.tileworld.communication.Message
+import com.tileworld.communication.MessageBox
 import com.tileworld.representation.Environment
 
 /**
@@ -8,11 +10,16 @@ import com.tileworld.representation.Environment
  */
 class EnvironmentThread extends Thread {
 
+    MessageBox[] agentsMessageBox;
+    MessageBox environmentMessageBox;
     Environment environment;
     Ticker ticker;
     TileWorldService tileWorldService;
 
-    public EnvironmentThread(Environment environment, Ticker ticker, TileWorldService tileWorldService) {
+    public EnvironmentThread(MessageBox[] agentsMessageBox, MessageBox environmentMessageBox, Environment environment,
+                             Ticker ticker, TileWorldService tileWorldService) {
+        this.agentsMessageBox = agentsMessageBox;
+        this.environmentMessageBox = environmentMessageBox;
         this.name = "environment";
         this.environment = environment;
         this.ticker = ticker;
@@ -32,8 +39,8 @@ class EnvironmentThread extends Thread {
 
             long startTime = System.currentTimeMillis() % 1000;
             ticker.tick(this.name);
-            environment.messageBox.checkMessageList(environment.numberOfAgents);
-            environment.processMessageList(tileWorldService);
+            environmentMessageBox.checkMessageList(this.name);
+            processMessageList();
             tileWorldService.updateTileWorld(environment);
             long endTime = System.currentTimeMillis() % 1000 - startTime;
 
@@ -46,5 +53,47 @@ class EnvironmentThread extends Thread {
 
         System.out.println(this.name + ": ended.")
         ticker.end();
+    }
+
+    /**
+     *
+     * @param tileWorldService
+     * @return
+     */
+    private void processMessageList() {
+        environmentMessageBox.messageList.each { Message message ->
+            tileWorldService.updateConsole("environment: ${message.toString()}");
+            processMessage(message);
+        }
+
+        environmentMessageBox.emptyMessageList(this.name);
+    }
+
+    /**
+     *
+     * @param message
+     */
+    private void processMessage(Message message) {
+
+        try {
+
+            Message confirmation = new Message(sender: "environment", inReplayTo: message.operation.code);
+            if(environment.executeOperation(message.sender, message.operation)) {
+                // send success message
+                confirmation.successCode = "SUCCESS";
+            } else {
+                // send error message
+                confirmation.successCode = "ERROR";
+            }
+
+            for(int i = 0; i < environment.numberOfAgents; i++) {
+                if(message.sender.equalsIgnoreCase(agentsMessageBox[i].getOwner())) {
+                    agentsMessageBox[i].addStatusMessage(confirmation);
+                    return;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

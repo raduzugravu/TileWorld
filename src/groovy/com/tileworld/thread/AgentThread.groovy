@@ -2,7 +2,9 @@ package com.tileworld.thread
 
 import com.tileworld.TileWorldService
 import com.tileworld.communication.Message
+import com.tileworld.communication.MessageBox
 import com.tileworld.communication.Operation
+import com.tileworld.representation.Agent
 import com.tileworld.representation.Environment
 
 /**
@@ -11,10 +13,15 @@ import com.tileworld.representation.Environment
 class AgentThread extends Thread {
 
     Environment environment;
+    MessageBox[] agentsMessageBox;
+    MessageBox environmentMessageBox;
     Ticker ticker;
     TileWorldService tileWorldService;
 
-    public AgentThread(Environment environment, Ticker ticker, TileWorldService tileWorldService, String agentName) {
+    public AgentThread(MessageBox[] agentsMessageBox, MessageBox environmentMessageBox, Environment environment,
+                       Ticker ticker, TileWorldService tileWorldService, String agentName) {
+        this.agentsMessageBox = agentsMessageBox;
+        this.environmentMessageBox = environmentMessageBox;
         this.name = agentName;
         this.environment = environment;
         this.ticker = ticker;
@@ -26,11 +33,13 @@ class AgentThread extends Thread {
     void run() {
 
         while(ticker.running()) {
+
             ticker.action(this.name);
+            tileWorldService.updateConsole(this.name + ": Action.")
 
             // got action tick - make your move
             makeRandomMove();
-            environment.messageBox.isMessageListProcessed();
+            environmentMessageBox.isMessageListProcessed();
             processMessageList();
         }
 
@@ -48,50 +57,40 @@ class AgentThread extends Thread {
     private void makeRandomMove() {
 
         def position = getPosition();
+        tileWorldService.updateConsole("${this.name}: makeRandomMove(): position=${position}");
 
         // check left
-        if(environment.isEmpty([x: position.x, y: position.y-1])) {
+        if(environment.canMoveTo([x: position.x, y: position.y-1])) {
             move([x: position.x, y: position.y-1]);
             return;
         }
 
         // check right
-        if(environment.isEmpty([x: position.x, y: position.y+1])) {
+        if(environment.canMoveTo([x: position.x, y: position.y+1])) {
             move([x: position.x, y: position.y+1]);
             return;
         }
 
         // check up
-        if(environment.isEmpty([x: position.x-1, y: position.y])) {
+        if(environment.canMoveTo([x: position.x-1, y: position.y])) {
             move([x: position.x-1, y: position.y]);
             return;
         }
 
         // check down
-        if(environment.isEmpty([x: position.x+1, y: position.y])) {
+        if(environment.canMoveTo([x: position.x+1, y: position.y])) {
             move([x: position.x+1, y: position.y]);
             return;
         }
     }
 
-    private Boolean waitForAnswer() {
-
+    private synchronized void processMessageList() {
         for(int i = 0; i < environment.numberOfAgents; i++) {
-            if(this.name.equalsIgnoreCase(environment.agents.get(i).name)) {
-                environment.agents.get(i).messageBox.checkMessageList(1);
-            }
-        }
-
-        return true;
-    }
-
-    private void processMessageList() {
-        for(int i = 0; i < environment.numberOfAgents; i++) {
-            if (this.name.equalsIgnoreCase(environment.agents.get(i).name)) {
-                environment.agents.get(i).messageBox.messageList.each {
+            if (this.name.equalsIgnoreCase(agentsMessageBox[i].getOwner())) {
+                agentsMessageBox[i].messageList.each {
                     tileWorldService.updateConsole("${this.name}: ${it.toString()}");
                 }
-                environment.agents.get(i).messageBox.messageList.clear();
+                agentsMessageBox[i].messageList.clear();
                 break;
             }
         }
@@ -108,7 +107,7 @@ class AgentThread extends Thread {
         Message message = new Message(sender: this.name, replayWith: "OPERATION_SUCCESS_CODE");
         Operation operation = new Operation(code: "MOVE", position: newPosition);
         message.operation = operation;
-        environment.messageBox.addMessage(message);
+        environmentMessageBox.addMessage(message);
     }
 
     /**
@@ -120,7 +119,7 @@ class AgentThread extends Thread {
         Message message = new Message(sender: this.name, replayWith: "OPERATION_SUCCESS_CODE");
         Operation operation = new Operation(code: "PICK", position: position);
         message.operation = operation;
-        environment.messageBox.addMessage(message);
+        environmentMessageBox.addMessage(message);
     }
 
     /**
@@ -132,7 +131,7 @@ class AgentThread extends Thread {
         Message message = new Message(sender: this.name, replayWith: "OPERATION_SUCCESS_CODE");
         Operation operation = new Operation(code: "DROP", position: position);
         message.operation = operation;
-        environment.messageBox.addMessage(message);
+        environmentMessageBox.addMessage(message);
     }
 
     /**
@@ -144,7 +143,7 @@ class AgentThread extends Thread {
         Message message = new Message(sender: this.name, replayWith: "OPERATION_SUCCESS_CODE");
         Operation operation = new Operation(code: "USE", direction: direction);
         message.operation = operation;
-        environment.messageBox.addMessage(message);
+        environmentMessageBox.addMessage(message);
     }
 
     /**
@@ -157,7 +156,7 @@ class AgentThread extends Thread {
         Message message = new Message(sender: this.name, replayWith: "OPERATION_SUCCESS_CODE");
         Operation operation = new Operation(code: "TRANSFER", toAgent: toAgent, transferPoints: transferPoints);
         message.operation = operation;
-        environment.messageBox.addMessage(message);
+        environmentMessageBox.addMessage(message);
     }
 
     /* --- END OPERATIONS --- */

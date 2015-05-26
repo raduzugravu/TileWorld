@@ -11,7 +11,7 @@ import com.tileworld.representation.Tile
 import com.tileworld.thread.AgentThread
 
 import com.tileworld.thread.EnvironmentThread
-
+import com.tileworld.thread.GeneratorThread
 import com.tileworld.thread.Ticker
 import grails.transaction.Transactional
 
@@ -46,8 +46,7 @@ class TileWorldService {
 
             // agents color
             for(int i = 0; i < environment.numberOfAgents; i++) {
-                MessageBox messageBox = new MessageBox();
-                Agent agent = new Agent(color: configurationVariables[k], name: configurationVariables[k], messageBox: messageBox);
+                Agent agent = new Agent(color: configurationVariables[k], name: configurationVariables[k]);
                 environment.agents.add(agent);
                 k++;
             }
@@ -119,10 +118,7 @@ class TileWorldService {
                 }
             }
 
-            environment.map = initialiseMap(environment);
-
-            // messageBox used to communicate between agents and environment
-            environment.messageBox = new MessageBox();
+            environment.initialiseMap();
 
             return environment;
 
@@ -134,67 +130,44 @@ class TileWorldService {
     }
 
     /**
-     * Mark each cell with a character corresponding to the entity currently in that cell (agents, tiles, holes, obstacles).
-     * This will ease the process of finding out if an adjacent cell is free or not.
-     * @param environment
-     * @return map - a matrix marking all cells that are not empty in this tile world game.
-     */
-    private def initialiseMap(Environment environment) {
-
-        def map = [];
-
-        for(int i = 0; i < environment.gridHeight; i++) {
-            def row = [];
-            for(int j = 0; j < environment.gridWidth; j++) {
-                row.add("E");
-            }
-            map.add(row);
-        }
-
-        // mark agents
-        for(int i = 0; i < environment.agents.size(); i++) {
-            map[environment.agents.get(i).xPosition][environment.agents.get(i).yPosition] = "A";
-        }
-
-        // mark tiles
-        for(int i = 0; i < environment.tiles.size(); i++) {
-            map[environment.tiles.get(i).xPosition][environment.tiles.get(i).yPosition] = "T";
-        }
-
-        // mark holes
-        for(int i = 0; i < environment.holes.size(); i++) {
-            map[environment.holes.get(i).xPosition][environment.holes.get(i).yPosition] = "H";
-        }
-
-        // mark obstacles
-        for(int i = 0; i < environment.obstacles.size(); i++) {
-            map[environment.obstacles.get(i).xPosition][environment.obstacles.get(i).yPosition] = "O";
-        }
-
-        return map;
-    }
-
-    /**
      * Start agent threads and environment thread.
      * @param environment
      */
     def initialise(Environment environment) {
 
-        Thread.sleep(5000);
+        Thread.sleep(1000);
 
         Ticker ticker = new Ticker(environment, this);
+
+        // message boxes
+        MessageBox[] agentsMessageBox = new MessageBox[environment.numberOfAgents];
+        for(int i = 0; i < agentsMessageBox.size(); i++) {
+            agentsMessageBox[i] = new MessageBox(environment.agents.get(i).name, environment.numberOfAgents, this);
+        }
+        MessageBox environmentMessageBox = new MessageBox("environment", environment.numberOfAgents, this);
 
         // create agents and start them
         List<AgentThread> agentThreads = new ArrayList<AgentThread>();
         for(int i = 0; i < environment.agents.size(); i++) {
-            AgentThread agent = new AgentThread(environment, ticker, this, environment.agents.get(i).name);
+            AgentThread agent = new AgentThread(agentsMessageBox, environmentMessageBox, environment, ticker, this, environment.agents.get(i).name);
             agentThreads.add(agent);
             agent.start();
         }
 
-        EnvironmentThread environmentThread = new EnvironmentThread(environment, ticker, this);
+        // random generation of tiles
+        if(environment.generator) {
+            Thread.sleep(5000);
+            GeneratorThread generatorThread = new GeneratorThread(environment, this);
+            generatorThread.start()
+        }
+
+        Thread.sleep(5000);
+
+        // start environment thread - this thread deals with agent communication and makes changes to the environment
+        EnvironmentThread environmentThread = new EnvironmentThread(agentsMessageBox, environmentMessageBox, environment, ticker, this);
         environmentThread.start()
 
+        // events to update interface
         updateTileWorld(environment);
         updateConsole("TileWorld game started.");
 
