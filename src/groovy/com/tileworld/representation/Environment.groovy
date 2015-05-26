@@ -5,6 +5,7 @@ import com.tileworld.communication.Message
 import com.tileworld.communication.MessageBox
 import com.tileworld.communication.Operation
 import com.tileworld.exceptions.UnknownOperationException
+import sun.management.resources.agent
 
 /**
  * Created by radu on 16/05/15.
@@ -12,8 +13,9 @@ import com.tileworld.exceptions.UnknownOperationException
 public class Environment {
 
     Integer numberOfAgents;
-    Integer tickTime;
-    Integer totalTime;
+    long tickTime;
+    long totalTime;
+    long remainingTime;
     Integer gridWidth;
     Integer gridHeight;
 
@@ -237,7 +239,7 @@ public class Environment {
      * @param environment
      * @return map - a matrix marking all cells that are not empty in this tile world game.
      */
-    public def initialiseMap() {
+    public synchronized void initialiseMap() {
 
         map = [[]];
 
@@ -268,5 +270,14 @@ public class Environment {
         for(int i = 0; i < obstacles.size(); i++) {
             map[obstacles.get(i).xPosition][obstacles.get(i).yPosition] = "O";
         }
+    }
+
+    public String getScore() {
+        String score = "";
+        agents.each { Agent agent ->
+            score += "${agent.name}: ${agent.points}\n"
+        }
+
+        return score;
     }
 }

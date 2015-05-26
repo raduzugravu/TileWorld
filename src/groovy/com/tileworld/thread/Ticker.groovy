@@ -23,6 +23,7 @@ class Ticker {
     public void end() {
         running = false;
         tileWorldService.updateConsole("Game ended!")
+        tileWorldService.endGame(environment.getScore());
     }
 
     public Boolean running() {

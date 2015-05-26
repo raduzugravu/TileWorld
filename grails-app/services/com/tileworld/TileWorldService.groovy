@@ -27,6 +27,7 @@ class TileWorldService {
 
         try {
 
+            Boolean dynamic = false;
             Environment environment = new Environment();
 
             List<String> configurationVariables = new ArrayList<String>();
@@ -37,8 +38,9 @@ class TileWorldService {
 
             // environment general variables
             environment.numberOfAgents = Integer.parseInt(configurationVariables[0]);
-            environment.tickTime = Integer.parseInt(configurationVariables[1]);
-            environment.totalTime = Integer.parseInt(configurationVariables[2]);
+            environment.tickTime = Long.parseLong(configurationVariables[1]);
+            environment.totalTime = Long.parseLong(configurationVariables[2]);
+            environment.remainingTime = environment.totalTime;
             environment.gridWidth = Integer.parseInt(configurationVariables[3]);
             environment.gridHeight = Integer.parseInt(configurationVariables[4]);
 
@@ -75,7 +77,7 @@ class TileWorldService {
 
             // generator - bonus
             if("generator".equalsIgnoreCase(configurationVariables[k])) {
-
+                dynamic = true;
                 Generator generator = new Generator();
                 generator.generatorStartTime = Integer.parseInt(configurationVariables[k+1]);
                 generator.generatorEndTime = Integer.parseInt(configurationVariables[k+2]);
@@ -102,19 +104,22 @@ class TileWorldService {
                 throw new ConfigurationException("");
             }
 
-            // holes
-            if(!"holes".equalsIgnoreCase(configurationVariables[k])) {
-                throw new ConfigurationException("");
-            } else {
-                k++;
-                for(int i = k; i < configurationVariables.size(); i++) {
-                    Hole hole = new Hole();
-                    hole.depth = Integer.parseInt(configurationVariables[i]);
-                    hole.color = configurationVariables[i+1];
-                    hole.xPosition = Integer.parseInt(configurationVariables[i+2]);
-                    hole.yPosition = Integer.parseInt(configurationVariables[i+3]);
-                    environment.holes.add(hole);
-                    i += 3;
+            if(!dynamic) {
+
+                // holes
+                if(!"holes".equalsIgnoreCase(configurationVariables[k])) {
+                    throw new ConfigurationException("");
+                } else {
+                    k++;
+                    for(int i = k; i < configurationVariables.size(); i++) {
+                        Hole hole = new Hole();
+                        hole.depth = Integer.parseInt(configurationVariables[i]);
+                        hole.color = configurationVariables[i+1];
+                        hole.xPosition = Integer.parseInt(configurationVariables[i+2]);
+                        hole.yPosition = Integer.parseInt(configurationVariables[i+3]);
+                        environment.holes.add(hole);
+                        i += 3;
+                    }
                 }
             }
 
@@ -156,12 +161,12 @@ class TileWorldService {
 
         // random generation of tiles
         if(environment.generator) {
-            Thread.sleep(5000);
-            GeneratorThread generatorThread = new GeneratorThread(environment, this);
+            Thread.sleep(2000);
+            GeneratorThread generatorThread = new GeneratorThread(environment, ticker, this);
             generatorThread.start()
         }
 
-        Thread.sleep(5000);
+        Thread.sleep(2000);
 
         // start environment thread - this thread deals with agent communication and makes changes to the environment
         EnvironmentThread environmentThread = new EnvironmentThread(agentsMessageBox, environmentMessageBox, environment, ticker, this);
@@ -184,4 +189,9 @@ class TileWorldService {
         event(key: "updateConsole", for: 'browser', data: data)
     }
 
+    def endGame(String message) {
+        System.out.println(System.currentTimeMillis() + " -> " + message);
+        def data = [message: message]
+        event(key: "endGame", for: 'browser', data: data)
+    }
 }

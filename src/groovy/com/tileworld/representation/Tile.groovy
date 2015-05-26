@@ -4,6 +4,8 @@ package com.tileworld.representation
  */
 class Tile {
 
+    long lifetime;
+
     Integer numberOfTiles;
     String color;
     Integer xPosition;

@@ -24,6 +24,9 @@
         tileWorldEvents.on('updateConsole', function(data) {
             updateConsole(data);
         });
+        tileWorldEvents.on('endGame', function(data) {
+            alert(data.message);
+        });
     </script>
 
 </head>

@@ -4,6 +4,8 @@ package com.tileworld.representation
  */
 class Hole {
 
+    long lifetime;
+
     Integer depth;
     String color;
     Integer xPosition;
