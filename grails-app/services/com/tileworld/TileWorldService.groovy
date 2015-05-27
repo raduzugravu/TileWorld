@@ -46,12 +46,15 @@ class TileWorldService {
 
             int k = 5; // iterate through all variables
 
-            // agents color
+            // agents color and name
             for(int i = 0; i < environment.numberOfAgents; i++) {
                 Agent agent = new Agent(color: configurationVariables[k], name: configurationVariables[k]);
                 environment.agents.add(agent);
                 k++;
             }
+
+            // decide main agent, used to intermediate the negotiation
+            environment.agents.get(0).principal = true;
 
             // agents position
             int agent = 0;
@@ -135,12 +138,12 @@ class TileWorldService {
     }
 
     /**
-     * Start agent threads and environment thread.
+     * Start agent threads, environment thread and generator thread.
      * @param environment
      */
     def initialise(Environment environment) {
 
-        Thread.sleep(1000);
+        Thread.sleep(5000);
 
         Ticker ticker = new Ticker(environment, this);
 
@@ -155,18 +158,16 @@ class TileWorldService {
         List<AgentThread> agentThreads = new ArrayList<AgentThread>();
         for(int i = 0; i < environment.agents.size(); i++) {
             AgentThread agent = new AgentThread(agentsMessageBox, environmentMessageBox, environment, ticker, this, environment.agents.get(i).name);
+            if(i == 0) agent.markAsPrincipal();
             agentThreads.add(agent);
             agent.start();
         }
 
         // random generation of tiles
         if(environment.generator) {
-            Thread.sleep(2000);
             GeneratorThread generatorThread = new GeneratorThread(environment, ticker, this);
             generatorThread.start()
         }
-
-        Thread.sleep(2000);
 
         // start environment thread - this thread deals with agent communication and makes changes to the environment
         EnvironmentThread environmentThread = new EnvironmentThread(agentsMessageBox, environmentMessageBox, environment, ticker, this);

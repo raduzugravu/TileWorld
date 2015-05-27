@@ -17,6 +17,7 @@ class AgentThread extends Thread {
     MessageBox environmentMessageBox;
     Ticker ticker;
     TileWorldService tileWorldService;
+    Boolean principal = false;
 
     public AgentThread(MessageBox[] agentsMessageBox, MessageBox environmentMessageBox, Environment environment,
                        Ticker ticker, TileWorldService tileWorldService, String agentName) {
@@ -44,6 +45,10 @@ class AgentThread extends Thread {
         }
 
         System.out.println(this.name + ": ended.")
+    }
+
+    public void markAsPrincipal() {
+        this.principal = true;
     }
 
     private def getPosition() {

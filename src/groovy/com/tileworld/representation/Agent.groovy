@@ -7,6 +7,8 @@ import com.tileworld.communication.MessageBox
  */
 class Agent {
 
+    Boolean principal = false;
+
     String name; // AgentThread identifier
     Integer points = 0; // number of points accumulated by this agent
 

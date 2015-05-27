@@ -26,7 +26,7 @@ public class Environment {
 
     Generator generator = null;
 
-    def map = [[]]; // this is a way to represent what a cell contains: E=empty; A=agent; T=tile; H=hole; O=obstacle
+    def map = []; // this is a way to represent what a cell contains: E=empty; A=agent; T=tile; H=hole; O=obstacle
 
     /**
      *
@@ -241,7 +241,7 @@ public class Environment {
      */
     public synchronized void initialiseMap() {
 
-        map = [[]];
+        map = [];
 
         for(int i = 0; i < gridHeight; i++) {
             def row = [];
