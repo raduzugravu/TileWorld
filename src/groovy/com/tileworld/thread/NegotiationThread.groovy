@@ -11,7 +11,7 @@ import com.tileworld.representation.Environment
 /**
  * Created by radu on 21/05/15.
  */
-class AgentThread extends Thread {
+class NegotiationThread extends Thread {
 
     Environment environment;
     MessageBox[] agentsMessageBox;
@@ -20,7 +20,7 @@ class AgentThread extends Thread {
     TileWorldService tileWorldService;
     Boolean principal = false;
 
-    public AgentThread(MessageBox[] agentsMessageBox, MessageBox environmentMessageBox, Environment environment,
+    public NegotiationThread(MessageBox[] agentsMessageBox, MessageBox environmentMessageBox, Environment environment,
                        Ticker ticker, TileWorldService tileWorldService, String agentName) {
         this.agentsMessageBox = agentsMessageBox;
         this.environmentMessageBox = environmentMessageBox;
@@ -55,7 +55,6 @@ class AgentThread extends Thread {
                         break;
                     }
                 }
-
             } else {
                 Message negotiationMessage = negotiate(distances);
                 notifyPrincipal(negotiationMessage);
@@ -366,7 +365,7 @@ class AgentThread extends Thread {
 
     private void waitNegotiationMessages() {
         for(int i = 0; i < environment.agents.size(); i++) {
-            if(environment.agents.get(i).name.equalsIgnoreCase(this.name) && agentsMessageBox[i].messageList.size() < agentsMessageBox[i].getExpectedMessages()) {
+            if(environment.agents.get(i).name.equalsIgnoreCase(this.name)) {
                 agentsMessageBox[i].checkNegotiationMessageList(this.name);
                 break;
             }

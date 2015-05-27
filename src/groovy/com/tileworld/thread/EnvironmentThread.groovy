@@ -37,6 +37,10 @@ class EnvironmentThread extends Thread {
 
         while(environment.remainingTime > 0) {
 
+            println("----- environment: Before starting: map:\n${environment.getMap()}")
+
+            if(!environment.generator && environment.isEmpty()) break;
+
             long startTime = System.currentTimeMillis() % 1000;
             ticker.tick(this.name);
             environmentMessageBox.checkMessageList(this.name);

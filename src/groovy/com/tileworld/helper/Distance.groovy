@@ -42,32 +42,32 @@ class Distance {
             // Take the first location off the queue
             def currentLocation = queue.poll();
 
-            // Explore North
-            def newLocation = exploreInDirection(currentLocation, endCoordinates, 'North', grid);
+            // Explore north
+            def newLocation = exploreInDirection(currentLocation, endCoordinates, 'north', grid);
             if ('goal'.equalsIgnoreCase(newLocation.status)) {
                 return newLocation.path;
             } else if ('valid'.equalsIgnoreCase(newLocation.status)) {
                 queue<<newLocation;
             }
 
-            // Explore East
-            newLocation = exploreInDirection(currentLocation, endCoordinates, 'East', grid);
+            // Explore east
+            newLocation = exploreInDirection(currentLocation, endCoordinates, 'east', grid);
             if ('goal'.equalsIgnoreCase(newLocation.status)) {
                 return newLocation.path;
             } else if ('valid'.equalsIgnoreCase(newLocation.status)) {
                 queue<<newLocation;
             }
 
-            // Explore South
-            newLocation = exploreInDirection(currentLocation, endCoordinates, 'South', grid);
+            // Explore south
+            newLocation = exploreInDirection(currentLocation, endCoordinates, 'south', grid);
             if ('goal'.equalsIgnoreCase(newLocation.status)) {
                 return newLocation.path;
             } else if ('valid'.equalsIgnoreCase(newLocation.status)) {
                 queue<<newLocation;
             }
 
-            // Explore West
-            newLocation = exploreInDirection(currentLocation, endCoordinates, 'West', grid);
+            // Explore west
+            newLocation = exploreInDirection(currentLocation, endCoordinates, 'west', grid);
             if ('goal'.equalsIgnoreCase(newLocation.status)) {
                 return newLocation.path;
             } else if ('valid'.equalsIgnoreCase(newLocation.status)) {
@@ -90,13 +90,13 @@ class Distance {
         def dft = currentLocation.distanceFromTop;
         def dfl = currentLocation.distanceFromLeft;
 
-        if ('North'.equalsIgnoreCase(direction)) {
+        if ('north'.equalsIgnoreCase(direction)) {
             dft -= 1;
-        } else if ('East'.equalsIgnoreCase(direction)) {
+        } else if ('east'.equalsIgnoreCase(direction)) {
             dfl += 1;
-        } else if ('South'.equalsIgnoreCase(direction)) {
+        } else if ('south'.equalsIgnoreCase(direction)) {
             dft += 1;
-        } else if ('West'.equalsIgnoreCase(direction)) {
+        } else if ('west'.equalsIgnoreCase(direction)) {
             dfl -= 1;
         }
 

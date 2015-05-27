@@ -10,6 +10,7 @@ class Message {
     String replayWith;
 
     Operation operation;
+
     String successCode; // SUCCESS - operation succeeded; ERROR - operation failed
 
     public String toString() {

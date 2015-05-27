@@ -26,9 +26,20 @@ class MessageBox {
         return messageList;
     }
 
+    public getExpectedMessages() {
+        return expectedMessages;
+    }
+
     public synchronized void checkMessageList(String threadName) {
         if(messageList.size() < expectedMessages) {
             System.out.println("${threadName}: checkMessageList(): Wait: messageList.size()=${messageList.size()}; expectedMessages=${expectedMessages}");
+            wait();
+        }
+    }
+
+    public synchronized void checkNegotiationMessageList(String threadName) {
+        if(messageList.size() < (expectedMessages - 1)) {
+            System.out.println("${threadName}: checkNegotiationMessageList(): Wait: messageList.size()=${messageList.size()}; expectedMessages=${expectedMessages - 1}");
             wait();
         }
     }
@@ -52,9 +63,17 @@ class MessageBox {
         notifyAll();
     }
 
+    public synchronized void addNegotiationMessage(Message message) {
+        messageList.add(message);
+        System.out.println("addNegotiationMessage(): messageList.size()=${messageList.size()}; expectedMessages=${expectedMessages -1}");
+        if(messageList.size() == (expectedMessages - 1)) {
+            notifyAll();
+        }
+    }
+
     public synchronized void addMessage(Message message) {
         messageList.add(message);
-        System.out.println("addMessage(): messageList.size()=${messageList.size()}; expectedMessages=${expectedMessages}");
+        System.out.println("addMessage(): owner=${this.owner}; messageList.size()=${messageList.size()}; expectedMessages=${expectedMessages}");
         if(messageList.size() == expectedMessages) {
             notifyAll();
         }

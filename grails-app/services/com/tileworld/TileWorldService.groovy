@@ -185,8 +185,9 @@ class TileWorldService {
     }
 
     def updateConsole(String message) {
-        System.out.println(System.currentTimeMillis() + " -> " + message);
-        def data = [message: message]
+        String logMessage = System.currentTimeMillis() + " -> " + message;
+        System.out.println(logMessage);
+        def data = [message: logMessage];
         event(key: "updateConsole", for: 'browser', data: data)
     }
 

@@ -1,6 +1,7 @@
 package com.tileworld.thread
 
 import com.tileworld.TileWorldService
+import com.tileworld.communication.Operation
 import com.tileworld.representation.Agent
 import com.tileworld.representation.Environment
 import com.tileworld.representation.Hole
@@ -41,8 +42,8 @@ class GeneratorThread extends Thread {
             tileWorldService.updateConsole("${this.name}: Next group random generation in ${nextRandomTime}.")
             sleep(nextRandomTime)
 
-            addRandomGroup(colors);
-            tileWorldService.updateConsole("${this.name}: Random group generated.")
+            environment.executeOperation("generator", new Operation(code: "ADD"))
+            tileWorldService.updateTileWorld(environment);
 
             totalTime += nextRandomTime;
             System.out.println("generator: " + totalTime);
@@ -59,61 +60,5 @@ class GeneratorThread extends Thread {
         long nextRandomTime = generatorStartTime + ((long)(r.nextDouble() * (generatorEndTime - generatorStartTime)));
 
         return nextRandomTime;
-    }
-
-    private long getRandomLifetime() {
-        long generatorStartTime = environment.generator.generatorMinLifetime;
-        long generatorEndTime = environment.generator.generatorMaxLifetime;
-        Random r = new Random()
-        long nextRandomTime = generatorStartTime + ((long)(r.nextDouble() * (generatorEndTime - generatorStartTime)));
-
-        return nextRandomTime;
-    }
-
-    private void addRandomGroup(String[] colors) {
-
-        if(isEnoughSpace(2)) {
-
-            long lifetime = getRandomLifetime();
-
-            Random rand = new Random();
-            int depth = rand.nextInt(5) + 1;
-            String color = colors[rand.nextInt(colors.size())];
-
-            def position = getRandomPosition();
-            Hole hole = new Hole(color: color, depth: depth, xPosition: position.x, yPosition: position.y, lifetime: lifetime);
-            environment.holes.add(hole);
-
-            position = getRandomPosition();
-            Tile tile = new Tile(numberOfTiles: depth, color: color, xPosition: position.x, yPosition: position.y, lifetime: lifetime);
-            environment.tiles.add(tile);
-
-            environment.initialiseMap();
-            tileWorldService.updateTileWorld(environment);
-        }
-
-    }
-
-    private def getRandomPosition() {
-        while(true) {
-            Random rand = new Random();
-            int x = rand.nextInt(environment.gridHeight);
-            int y = rand.nextInt(environment.gridWidth);
-            if(environment.map[x][y] == 'E')
-                return [x:x, y:y];
-        }
-    }
-
-    private Boolean isEnoughSpace(space) {
-        int availableSpace = 0;
-        for(int i = 0; i < environment.map.size(); i++)
-            for(int j = 0; j < environment.map[i].size(); j++)
-                if(environment.map[i][j] == 'E')
-                    availableSpace++;
-
-        if(availableSpace >= space)
-            return true;
-
-        return false;
     }
 }

@@ -34,7 +34,8 @@ public class Environment {
      * @param operation
      * @return
      */
-    public Boolean executeOperation(String author, Operation operation) {
+    public synchronized Boolean executeOperation(String author, Operation operation) {
+
         switch(operation.code) {
             case "PICK":
                 return pick(author, operation);
@@ -46,6 +47,8 @@ public class Environment {
                 return move(author, operation);
             case "TRANSFER":
                 return transfer(author, operation);
+            case "ADD":
+                return addRandomGroup();
             default:
                 throw new UnknownOperationException("${author} requested an operation with an unknown code. Operation: ${operation}");
         }
@@ -92,8 +95,14 @@ public class Environment {
                 while(iterator.hasNext()) {
                     Tile tile = iterator.next();
                     if((tile.xPosition == operation.position.x) && (tile.yPosition == operation.position.y)) {
-                        agent.tile = tile;
-                        iterator.remove();
+                        if(tile.numberOfTiles > 1) {
+                            Tile agentTile = new Tile(color: tile.color);
+                            agent.tile = agentTile;
+                            tile.numberOfTiles--;
+                        } else {
+                            agent.tile = tile;
+                            iterator.remove();
+                        }
                         initialiseMap();
                         return true;
                     }
@@ -173,8 +182,13 @@ public class Environment {
                     if((hole.xPosition == holePosition.x) && (hole.yPosition == holePosition.y)) {
                         iterator.remove();
                         hole.depth -= 1;
-                        if(hole.depth > 0)
+                        if(hole.depth > 0) {
+                            if(agent.tile.color.equalsIgnoreCase(agent.color)) agent.points += 10;
                             holes.add(hole);
+                        } else {
+                            if(agent.tile.color.equalsIgnoreCase(agent.color)) agent.points += 40;
+                        }
+                        agent.tile = null;
                         initialiseMap();
                         return true;
                     }
@@ -224,9 +238,9 @@ public class Environment {
 
         if( position.x >= 0 && position.x < gridHeight &&
             position.y >= 0 && position.y < gridWidth &&
-            map[position.x][position.y] != 'H' &&
-            map[position.x][position.y] != 'O' &&
-            map[position.x][position.y] != 'A') {
+            !map[position.x][position.y].contains('H') &&
+            !map[position.x][position.y].contains('O') &&
+            !map[position.x][position.y].contains('A')) {
             return true;
         }
 
@@ -258,7 +272,8 @@ public class Environment {
 
         // mark tiles
         for(int i = 0; i < tiles.size(); i++) {
-            map[tiles.get(i).xPosition][tiles.get(i).yPosition] += "T";
+            for(int j = 0; j < tiles[i].numberOfTiles; j++)
+                map[tiles.get(i).xPosition][tiles.get(i).yPosition] += "T";
         }
 
         // mark holes
@@ -279,5 +294,80 @@ public class Environment {
         }
 
         return score;
+    }
+
+    public Boolean isEmpty() {
+        for(int i = 0; i < map.size(); i++) {
+            for (int j = 0; j < map[i].size(); j++) {
+                if(map[i][j].contains("H") || map[i][j].contains("T")) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private Boolean addRandomGroup() {
+
+        if(isEnoughSpace(2)) {
+
+            String[] colors = new String[this.numberOfAgents];
+            this.agents.eachWithIndex { it, i ->
+                colors[i] = it.color;
+            }
+
+            long lifetime = getRandomLifetime();
+
+            Random rand = new Random();
+            int depth = rand.nextInt(5) + 1;
+            String color = colors[rand.nextInt(colors.size())];
+
+            def position = getRandomPosition();
+            Hole hole = new Hole(color: color, depth: depth, xPosition: position.x, yPosition: position.y, lifetime: lifetime);
+            this.holes.add(hole);
+
+            position = getRandomPosition();
+            Tile tile = new Tile(numberOfTiles: depth, color: color, xPosition: position.x, yPosition: position.y, lifetime: lifetime);
+            this.tiles.add(tile);
+
+            this.initialiseMap();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private long getRandomLifetime() {
+        long generatorStartTime = this.generator.generatorMinLifetime;
+        long generatorEndTime = this.generator.generatorMaxLifetime;
+        Random r = new Random()
+        long nextRandomTime = generatorStartTime + ((long)(r.nextDouble() * (generatorEndTime - generatorStartTime)));
+
+        return nextRandomTime;
+    }
+
+    private def getRandomPosition() {
+        while(true) {
+            Random rand = new Random();
+            int x = rand.nextInt(this.gridHeight);
+            int y = rand.nextInt(this.gridWidth);
+            if(this.map[x][y] == 'E')
+                return [x:x, y:y];
+        }
+    }
+
+    private Boolean isEnoughSpace(space) {
+        int availableSpace = 0;
+        for(int i = 0; i < this.map.size(); i++)
+            for(int j = 0; j < this.map[i].size(); j++)
+                if(this.map[i][j] == 'E')
+                    availableSpace++;
+
+        if(availableSpace >= space)
+            return true;
+
+        return false;
     }
 }
