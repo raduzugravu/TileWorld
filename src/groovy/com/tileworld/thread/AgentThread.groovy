@@ -16,14 +16,15 @@ class AgentThread extends Thread {
     Environment environment;
     MessageBox[] agentsMessageBox;
     MessageBox environmentMessageBox;
+    MessageBox negotiationMessageBox;
     Ticker ticker;
     TileWorldService tileWorldService;
-    Boolean principal = false;
 
-    public AgentThread(MessageBox[] agentsMessageBox, MessageBox environmentMessageBox, Environment environment,
-                       Ticker ticker, TileWorldService tileWorldService, String agentName) {
+    public AgentThread(MessageBox[] agentsMessageBox, MessageBox environmentMessageBox, MessageBox negotiationMessageBox,
+                       Environment environment, Ticker ticker, TileWorldService tileWorldService, String agentName) {
         this.agentsMessageBox = agentsMessageBox;
         this.environmentMessageBox = environmentMessageBox;
+        this.negotiationMessageBox = negotiationMessageBox;
         this.name = agentName;
         this.environment = environment;
         this.ticker = ticker;
@@ -42,25 +43,10 @@ class AgentThread extends Thread {
             // got action tick - make your move
             def distances = computeDistances(getPosition());
 
-            // principal agent intermediates negotiation between agents and decides agents actions
-            if(this.principal) {
-
-                waitNegotiationMessages(); // wait for all agents to send distances
-                computeNegotiationResult(); // based on distances decide action for agents
-
-                // decide action for principal thread
-                for(int i = 0; i < environment.agents.size(); i++) {
-                    if(environment.agents.get(i).name.equalsIgnoreCase(this.name)) {
-                        decideAgentAction(environment.agents.get(i), environment.getMap(), [[owner: this.name, distances: distances]]);
-                        break;
-                    }
-                }
-
-            } else {
-                Message negotiationMessage = negotiate(distances);
-                notifyPrincipal(negotiationMessage);
-                waitNegotiationStatusMessage();
-            }
+            Message negotiationMessage = negotiate(distances);
+            notifyPrincipal(negotiationMessage);
+            negotiationMessageBox.checkNegotiationMessageList(this.name); // wait for all agents to send distances
+            negotiationMessageBox.isMessageListProcessed();
 
             processMessageList();
 
@@ -73,44 +59,11 @@ class AgentThread extends Thread {
         System.out.println(this.name + ": ended.")
     }
 
-    public void markAsPrincipal() {
-        this.principal = true;
-    }
-
     private def getPosition() {
         for(int i = 0; i < environment.agents.size(); i++) {
             if(this.name.equalsIgnoreCase(environment.agents.get(i).name)) {
                 return [x: environment.agents.get(i).xPosition, y: environment.agents.get(i).yPosition]
             }
-        }
-    }
-
-    private void makeRandomMove(String agentName) {
-
-        def position;
-        for(int i = 0; i < environment.agents.size(); i++) {
-            if(agentName.equalsIgnoreCase(environment.agents.get(i).name)) {
-                position = [x: environment.agents.get(i).xPosition, y: environment.agents.get(i).yPosition];
-            }
-        }
-
-        // check left/right/up/down
-        if(environment.canMoveTo([x: position.x, y: position.y-1])) {
-            def message = move([x: position.x, y: position.y-1]);
-            notifyAgent(agentName, message);
-        } else if(environment.canMoveTo([x: position.x, y: position.y+1])) {
-            def message = move([x: position.x, y: position.y+1]);
-            notifyAgent(agentName, message);
-        } else if(environment.canMoveTo([x: position.x-1, y: position.y])) {
-            def message = move([x: position.x-1, y: position.y]);
-            notifyAgent(agentName, message);
-        } else if(environment.canMoveTo([x: position.x+1, y: position.y])) {
-            def message = move([x: position.x+1, y: position.y]);
-            notifyAgent(agentName, message);
-        } else {
-            // move to the same position :)
-            def message = move([x: position.x, y: position.y]);
-            notifyAgent(agentName, message);
         }
     }
 
@@ -243,157 +196,12 @@ class AgentThread extends Thread {
         return [holes: distanceToHoles, tiles: distanceToTiles];
     }
 
-
-
-    /**
-     * Read all other messages containing distances from other agents and make a decision for each agent.
-     * @param distances
-     */
-    private void computeNegotiationResult() {
-
-        println("computeNegotiationResult: ${this.name} got here.")
-
-        def distances = [];
-        for(int i = 0; i < agentsMessageBox.size(); i++) {
-            if(this.name.equalsIgnoreCase(agentsMessageBox[i].owner)) {
-                agentsMessageBox[i].messageList.each {
-                    if("NEGOTIATION".equalsIgnoreCase(it.operation.code)) {
-                        distances.add([owner: it.sender, distances: it.operation.distances]);
-                    }
-                }
-                break;
-            }
-        }
-
-        println("computeNegotiationResult: ${this.name} got here: distances=${distances}.")
-
-        def map = environment.getMap();
-        environment.agents.eachWithIndex { Agent agent, i ->
-            if (agent.name.equalsIgnoreCase(this.name)) return;
-            decideAgentAction(agent, map, distances)
-        }
-
-        // notify messages list processing ended
-        for(int i = 0; i < agentsMessageBox.size(); i++) {
-            if(this.name.equalsIgnoreCase(agentsMessageBox[i].owner)) {
-                agentsMessageBox[i].emptyMessageList(this.name);
-                break;
-            }
-        }
-
-    }
-
-    private void decideAgentAction(Agent agent, def map, def distances) {
-
-        println("decideAgentAction(): agentName=${agent.name}; hasTile=${agent.tile}; map=${map}; distances=${distances}");
-
-        // if agent is on a tile and has no tile pick it up
-        if(!agent.tile && map[agent.xPosition][agent.yPosition].contains("T")) {
-            if(map[agent.xPosition][agent.yPosition].contains("T")) {
-                def message = pickTile([x:agent.xPosition, y:agent.yPosition]);
-                notifyAgent(agent.name, message);
-            }
-        }
-        // if agent has a tile cover a hole or go to the closest hole
-        else if(agent.tile) {
-            // cover a hole
-            String direction = "";
-            if(agent.xPosition - 1 >= 0 && map[agent.xPosition - 1][agent.yPosition].contains("H")) direction = "UP";
-            if(agent.xPosition + 1 < environment.gridHeight && map[agent.xPosition + 1][agent.yPosition].contains("H")) direction = "DOWN";
-            if(agent.yPosition - 1 >= 0 && map[agent.xPosition][agent.yPosition - 1].contains("H")) direction = "LEFT";
-            if(agent.yPosition + 1 < environment.gridWidth && map[agent.xPosition][agent.yPosition+1].contains("H")) direction="RIGHT";
-            if(direction.size() > 0) {
-                def message = useTile(direction);
-                notifyAgent(agent.name, message);
-            } else {
-                // get to the closest hole
-                distances.each {
-                    if(it.owner.equalsIgnoreCase(agent.name)) {
-                        def position = getDirectionToClosestElement(agent, it.distances.holes);
-                        if(position) {
-                            def message = move(position);
-                            notifyAgent(agent.name, message);
-                        }
-                    }
-                }
-            }
-        } else {
-            // get to the closest tile
-            distances.each {
-                if(it.owner.equalsIgnoreCase(agent.name)) {
-                    def position = getDirectionToClosestElement(agent, it.distances.tiles);
-                    if(position) {
-                        def message = move(position);
-                        notifyAgent(agent.name, message);
-                    } else {
-                        def message = move([x:agent.xPosition, y:agent.yPosition]);
-                        notifyAgent(agent.name, message);
-                    }
-                }
-            }
-        }
-    }
-
-    private getDirectionToClosestElement(Agent agent, def elements) {
-
-        int size = environment.gridHeight * environment.gridWidth;
-        int k = 0;
-
-        if(!elements || elements.size() == 0) return false;
-
-        elements.eachWithIndex { element, i ->
-            if(element.distance && element.distance.size() < size) {
-                size = element.distance.size();
-                k = i;
-            }
-        }
-
-        if(elements[k] && elements[k].distance && elements[k].distance.size() > 0) {
-            switch(elements[k]?.distance[0]) {
-                case "north":
-                    return [x: agent.xPosition - 1, y: agent.yPosition];
-                case "south":
-                    return [x: agent.xPosition + 1, y: agent.yPosition];
-                case "east":
-                    return [x: agent.xPosition, y: agent.yPosition + 1];
-                case "west":
-                    return [x: agent.xPosition, y: agent.yPosition - 1];
-            }
-        }
-
-        return false;
-    }
-
-    private void waitNegotiationMessages() {
-        for(int i = 0; i < environment.agents.size(); i++) {
-            if(environment.agents.get(i).name.equalsIgnoreCase(this.name) && agentsMessageBox[i].messageList.size() < agentsMessageBox[i].getExpectedMessages()) {
-                agentsMessageBox[i].checkNegotiationMessageList(this.name);
-                break;
-            }
-        }
-    }
-
-    private void waitNegotiationStatusMessage() {
-        println("${this.name}: waitNegotiationStatusMessage();")
-        for(int i = 0; i < environment.agents.size(); i++) {
-            if(environment.agents.get(i).principal) {
-                agentsMessageBox[i].isMessageListProcessed();
-                break;
-            }
-        }
-    }
-
     /**
      * Send message to the agent handling the negotiation process (principal agent).
      * @param message - message to send.
      */
     private void notifyPrincipal(Message message) {
-        for(int i = 0; i < environment.agents.size(); i++) {
-            if(environment.agents.get(i).principal) {
-                agentsMessageBox[i].addNegotiationMessage(message);
-                return;
-            }
-        }
+        negotiationMessageBox.addMessage(message);
     }
 
     /**
@@ -404,22 +212,4 @@ class AgentThread extends Thread {
         environmentMessageBox.addMessage(message);
         return;
     }
-
-    /**
-     * Send message to an agent.
-     * @param agentName - agent name used to identify the agent message box.
-     * @param message - message to send.
-     */
-    private void notifyAgent(String agentName, Message message) {
-        println "notifyAgent: message=${message}";
-        for(int i = 0; i < agentsMessageBox.size(); i++) {
-            if(agentsMessageBox[i].owner.equalsIgnoreCase(agentName)) {
-                agentsMessageBox[i].addMessage(message);
-                return;
-            }
-        }
-    }
-
-    /* --- END OPERATIONS --- */
-
 }

@@ -12,6 +12,7 @@ import com.tileworld.thread.AgentThread
 
 import com.tileworld.thread.EnvironmentThread
 import com.tileworld.thread.GeneratorThread
+import com.tileworld.thread.NegotiationThread
 import com.tileworld.thread.Ticker
 import grails.transaction.Transactional
 
@@ -32,8 +33,9 @@ class TileWorldService {
 
             List<String> configurationVariables = new ArrayList<String>();
             configuration.readLines().each { String line ->
-                line.replaceAll("\\s", " ");
-                configurationVariables.addAll(line.split(" "));
+                line.split("\\s+")?.each {
+                    if(it.size() > 0) configurationVariables.add(it);
+                }
             }
 
             // environment general variables
@@ -52,9 +54,6 @@ class TileWorldService {
                 environment.agents.add(agent);
                 k++;
             }
-
-            // decide main agent, used to intermediate the negotiation
-            environment.agents.get(0).principal = true;
 
             // agents position
             int agent = 0;
@@ -153,12 +152,12 @@ class TileWorldService {
             agentsMessageBox[i] = new MessageBox(environment.agents.get(i).name, environment.numberOfAgents, this);
         }
         MessageBox environmentMessageBox = new MessageBox("environment", environment.numberOfAgents, this);
+        MessageBox negotiationMessageBox = new MessageBox("principal", environment.numberOfAgents, this);
 
         // create agents and start them
         List<AgentThread> agentThreads = new ArrayList<AgentThread>();
         for(int i = 0; i < environment.agents.size(); i++) {
-            AgentThread agent = new AgentThread(agentsMessageBox, environmentMessageBox, environment, ticker, this, environment.agents.get(i).name);
-            if(i == 0) agent.markAsPrincipal();
+            AgentThread agent = new AgentThread(agentsMessageBox, environmentMessageBox, negotiationMessageBox, environment, ticker, this, environment.agents.get(i).name);
             agentThreads.add(agent);
             agent.start();
         }
@@ -168,6 +167,10 @@ class TileWorldService {
             GeneratorThread generatorThread = new GeneratorThread(environment, ticker, this);
             generatorThread.start()
         }
+
+        // start environment thread - this thread deals with agent communication and makes changes to the environment
+        NegotiationThread negotiationThread = new NegotiationThread(agentsMessageBox, negotiationMessageBox, environment, ticker, this, "principal");
+        negotiationThread.start()
 
         // start environment thread - this thread deals with agent communication and makes changes to the environment
         EnvironmentThread environmentThread = new EnvironmentThread(agentsMessageBox, environmentMessageBox, environment, ticker, this);

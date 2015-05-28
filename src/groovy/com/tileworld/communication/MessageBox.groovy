@@ -38,7 +38,7 @@ class MessageBox {
     }
 
     public synchronized void checkNegotiationMessageList(String threadName) {
-        if(messageList.size() < (expectedMessages - 1)) {
+        if(messageList.size() < expectedMessages) {
             System.out.println("${threadName}: checkNegotiationMessageList(): Wait: messageList.size()=${messageList.size()}; expectedMessages=${expectedMessages - 1}");
             wait();
         }

@@ -49,7 +49,8 @@ class EnvironmentThread extends Thread {
             long endTime = System.currentTimeMillis() % 1000 - startTime;
 
             // if everything ended faster, wait until next tick time
-            Thread.sleep(environment.tickTime - endTime);
+            if(environment.tickTime - endTime > 0)
+                sleep(environment.tickTime - endTime);
             environment.remainingTime -= environment.tickTime;
 
             System.out.println("EnvironmentThread.run(): Time to end: ${environment.totalTime}");

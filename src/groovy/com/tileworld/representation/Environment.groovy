@@ -232,9 +232,8 @@ public class Environment {
      *
      * @param position
      * @return
-     * TODO: This method is public for testing only - convert this method to private after removing logic from AgentThread
      */
-    public Boolean canMoveTo(def position) {
+    private Boolean canMoveTo(def position) {
 
         if( position.x >= 0 && position.x < gridHeight &&
             position.y >= 0 && position.y < gridWidth &&
